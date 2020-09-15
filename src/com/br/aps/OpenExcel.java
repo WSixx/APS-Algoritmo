@@ -27,7 +27,7 @@ public class OpenExcel {
     }
 
 
-    public void OpenExcel() throws IOException {
+    public void OpenExcel(String absolutePath) throws IOException {
 
         List<Focos> listaNumbers = new ArrayList<>();
 
