@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,8 +86,6 @@ public class MainScreen extends JFrame{
                 //listData.setSelectedIndex(0);
                 listData.setVisibleRowCount(-1);
                 scrollPane.getViewport().setView(listData);
-
-
             }
         });
         button1.addActionListener(new ActionListener() {
