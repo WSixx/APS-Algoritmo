@@ -18,6 +18,7 @@ public class BancoDAO {
 
     public void salvaBd(Focos focos) {
         String sql = "INSERT INTO focos(indice,bioma,cidade) VALUES(?,?,?)";
+        //String sql = "INSERT INTO focos(bioma,cidade) VALUES(?,?,?)";
             try {
                 PreparedStatement prepState = conector.prepareStatement(sql);
 

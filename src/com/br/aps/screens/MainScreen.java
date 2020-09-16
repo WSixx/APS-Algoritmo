@@ -1,5 +1,6 @@
 package com.br.aps.screens;
 
+import com.br.aps.Algoritmos;
 import com.br.aps.BancoDAO;
 import com.br.aps.Focos;
 import com.br.aps.OpenExcel;
@@ -21,6 +22,8 @@ public class MainScreen extends JFrame{
     private JScrollPane scrollPane;
     private JButton button1;
     private JTextField indiceTextField;
+    private JButton ordenarButton;
+    private JLabel lblResultado;
     //JFrame
     public static final JFrame frame = new JFrame();
     static OpenExcel openExcel = new OpenExcel();
@@ -88,6 +91,30 @@ public class MainScreen extends JFrame{
                 scrollPane.getViewport().setView(listData);
             }
         });
+        ordenarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Algoritmos algoritmos = new Algoritmos();
+                List<Integer> teste = new ArrayList<>();
+                //teste.add(algoritmos.selectionSort(listFromSelect));
+                dlm.removeAllElements();
+
+                long startTime = System.nanoTime();
+                for(int p : algoritmos.selectionSort(listFromSelect) ){
+                    //System.out.println("ADD: " + p);
+                    dlm.addElement(p);
+                }
+                long endTimer = System.nanoTime();
+                System.out.println("Tempo total: " + (endTimer - startTime) / 1000000);
+
+                listData.setModel(dlm);
+                System.out.println(dlm.size());
+                listData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                //listData.setSelectedIndex(0);
+                listData.setVisibleRowCount(-1);
+                scrollPane.getViewport().setView(listData);
+            }
+        });
         button1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -105,6 +132,7 @@ public class MainScreen extends JFrame{
 
             }
         });
+
     }
 
     public void refreshlist(boolean isRandom) throws Exception {
