@@ -19,11 +19,11 @@ public class Main {
         }
         System.out.println("OK: " + listFromSelect.size());
 
-        Focos focos = bancoDAO.selectWhere(273);
+       /*// Focos focos = bancoDAO.selectWhere(273);
         System.out.println(focos.getIndex());
         System.out.println(focos.getBioma());
         System.out.println(focos.getMunicipio());
         Algoritmos algoritmos = new Algoritmos();
-        algoritmos.selectionSort(listFromSelect);
+        algoritmos.selectionSort(listFromSelect);*/
     }
 }

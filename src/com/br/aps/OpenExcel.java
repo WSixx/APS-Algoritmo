@@ -56,6 +56,7 @@ public class OpenExcel {
                         case 7 -> focos.setLat(cell.getNumericCellValue());
                         case 8 -> focos.setLon(cell.getNumericCellValue());
                         case 9 -> focos.setRegiao(cell.getStringCellValue());
+                        case 10 -> focos.setDiasSemChuva((int) cell.getNumericCellValue());
                     }
                 }
                 bancoDAO.salvaBd(focos);

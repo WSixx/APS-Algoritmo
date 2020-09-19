@@ -1,18 +1,17 @@
 package com.br.aps.screens;
 
-import com.br.aps.Algoritmos;
-import com.br.aps.BancoDAO;
-import com.br.aps.Focos;
-import com.br.aps.OpenExcel;
+import com.br.aps.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
-import java.awt.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MainScreen extends JFrame{
     private JButton btnStart;
@@ -20,18 +19,30 @@ public class MainScreen extends JFrame{
     private JList listData;
     private JButton btnList;
     private JScrollPane scrollPane;
-    private JButton button1;
+    private JButton btnPesquisar;
     private JTextField indiceTextField;
-    private JButton ordenarButton;
+    private JButton btnSelectionSort;
     private JLabel lblResultado;
+    private JTable jTable;
+    private JButton bnt;
     //JFrame
     public static final JFrame frame = new JFrame();
     static OpenExcel openExcel = new OpenExcel();
     public static List<Integer> listFromSelect = new ArrayList<>();
     public static List<Integer> fromWhere = new ArrayList<>();
+    BancoDAO bancoDAO;
+    GetTempo getTempo = new GetTempo();
+
+
+    {
+        try {
+            bancoDAO = new BancoDAO();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     DefaultListModel dlm = new DefaultListModel();
-
 
     MainScreen() {
         super();
@@ -40,7 +51,7 @@ public class MainScreen extends JFrame{
         //setDefaultCloseOperation = Sair da aplicacao no X button
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //Size do frame
-        this.setSize(600, 600);
+        this.setSize(800, 600);
         //Redimensionamento = false
         this.setResizable(false);
 
@@ -51,6 +62,7 @@ public class MainScreen extends JFrame{
 
         //Abrir a janela no centro da Tela
         this.setLocationRelativeTo(null);
+
 
         btnStart.addActionListener(new ActionListener() {
             @Override
@@ -78,61 +90,75 @@ public class MainScreen extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    refreshlist(true);
-                } catch (Exception exception) {
-                    exception.printStackTrace();
+                    bancoDAO.FillTable(jTable);
+                    scrollPane.getViewport().setView(jTable);
+
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
                 }
-                JPanel panel = new JPanel(new BorderLayout());
-                listData.setModel(dlm);
-                System.out.println(dlm.size());
-                listData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                //listData.setSelectedIndex(0);
-                listData.setVisibleRowCount(-1);
-                scrollPane.getViewport().setView(listData);
             }
         });
-        ordenarButton.addActionListener(new ActionListener() {
+        btnSelectionSort.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Algoritmos algoritmos = new Algoritmos();
-                List<Integer> teste = new ArrayList<>();
-                //teste.add(algoritmos.selectionSort(listFromSelect));
-                dlm.removeAllElements();
 
                 long startTime = System.nanoTime();
-                for(int p : algoritmos.selectionSort(listFromSelect) ){
-                    //System.out.println("ADD: " + p);
-                    dlm.addElement(p);
+                Focos focos;
+                DefaultTableModel model = new DefaultTableModel(new String[]{"id", "Satelite", "" +
+                        "Cidade", "Estado", "Dias sem chuva", "Bioma"}, 0);
+                for(int p : algoritmos.selectionSort(listFromSelect, getTempo) ){
+                    try {
+                        focos = bancoDAO.selectWhere2(p);
+                        model.addRow(new Object[]{p, focos.getSatelite(), focos.getMunicipio(), focos.getEstado(), focos.getDiasSemChuva(), focos.getBioma()});
+                    } catch (SQLException throwables) {
+                        throwables.printStackTrace();
+                    }
                 }
+                jTable.setModel(model);
+                scrollPane.getViewport().setView(jTable);
                 long endTimer = System.nanoTime();
-                System.out.println("Tempo total: " + (endTimer - startTime) / 1000000);
-
-                listData.setModel(dlm);
-                System.out.println(dlm.size());
-                listData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                //listData.setSelectedIndex(0);
-                listData.setVisibleRowCount(-1);
-                scrollPane.getViewport().setView(listData);
+                //System.out.println("Tempo total: " + (endTimer - startTime) / 1000000);
+                System.out.println("Main tempo: " + getTempo.getTempoTotal());
+                long tempototal = TimeUnit.SECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
+                lblResultado.setText("Tempo: " + tempototal + " segundos");
             }
         });
-        button1.addActionListener(new ActionListener() {
+        btnPesquisar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                String textFieldValue = indiceTextField.getText();
+                try {
+                    bancoDAO.selectWhere(jTable, Integer.parseInt(textFieldValue));
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+                scrollPane.getViewport().setView(jTable);
                 try {
                     refreshlist(false);
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
-                listData.setModel(dlm);
-                System.out.println(dlm.size());
+                /*listData.setModel(dlm);
                 listData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
                 //listData.setSelectedIndex(0);
                 listData.setVisibleRowCount(-1);
-                scrollPane.getViewport().setView(listData);
-
+                scrollPane.getViewport().setView(listData);*/
             }
         });
 
+    }
+
+    static BancoDAO teste(){
+        try {
+            BancoDAO bancoDAO = new BancoDAO();
+            return bancoDAO;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            System.out.println("Seguno");
+            return null;
+
+        }
     }
 
     public void refreshlist(boolean isRandom) throws Exception {
@@ -143,10 +169,13 @@ public class MainScreen extends JFrame{
                 dlm.addElement(p);
             }
         }else {
-            BancoDAO bancoDAO = new BancoDAO();
+            String textFieldValue = indiceTextField.getText();
+            bancoDAO.selectWhere(jTable, Integer.parseInt(textFieldValue));
+            scrollPane.getViewport().setView(jTable);
+          /*  BancoDAO bancoDAO = new BancoDAO();
             String textFieldValue = indiceTextField.getText();
             Focos focos = bancoDAO.selectWhere(Integer.parseInt(textFieldValue));
-            dlm.addElement(focos.getMunicipio());
+            dlm.addElement(focos.getMunicipio());*/
         }
 
     }
@@ -156,5 +185,6 @@ public class MainScreen extends JFrame{
        MainScreen mainScreen = new  MainScreen();
        mainScreen.setVisible(true);
        listFromSelect = bancoDAO.select();
+       teste();
     }
 }

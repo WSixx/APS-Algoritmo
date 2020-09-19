@@ -7,6 +7,7 @@ public class Focos {
     private LocalDateTime data;
     private String satelite;
     private String pais;
+    private int diasSemChuva;
     private String estado;
     private String municipio;
     private String bioma;
@@ -14,12 +15,13 @@ public class Focos {
     private Double lon;
     private String regiao;
 
-    public Focos(int index, LocalDateTime data, String satelite, String pais, String estado, String municipio, String bioma, Double lat, Double lon, String regiao) {
+    public Focos(int index, LocalDateTime data, String satelite, String pais, int diasSemChuva, String estado, String municipio, String bioma, Double lat, Double lon, String regiao) {
         super();
         this.index = index;
         this.data = data;
         this.satelite = satelite;
         this.pais = pais;
+        this.diasSemChuva = diasSemChuva;
         this.estado = estado;
         this.municipio = municipio;
         this.bioma = bioma;
@@ -108,5 +110,13 @@ public class Focos {
 
     public void setRegiao(String regiao) {
         this.regiao = regiao;
+    }
+
+    public int getDiasSemChuva() {
+        return diasSemChuva;
+    }
+
+    public void setDiasSemChuva(int diasSemChuva) {
+        this.diasSemChuva = diasSemChuva;
     }
 }
