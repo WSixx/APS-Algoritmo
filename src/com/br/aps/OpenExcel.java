@@ -27,16 +27,15 @@ public class OpenExcel {
     }
 
 
-    public void OpenExcel(String absolutePath) throws IOException {
+    public boolean OpenExcel(String absolutePath) throws IOException {
 
         List<Focos> listaNumbers = new ArrayList<>();
 
         try {
             FileInputStream arquivo = new FileInputStream(new File(
-                    OpenExcel.fileName));
+                    absolutePath));
 
             HSSFWorkbook workbook = new HSSFWorkbook(arquivo);
-
             HSSFSheet sheetFocos = workbook.getSheetAt(0);
 
             for (Row row : sheetFocos) {
@@ -47,15 +46,15 @@ public class OpenExcel {
                     Cell cell = cellIterator.next();
                     switch (cell.getColumnIndex()) {
                         case 0 -> focos.setIndex((int) cell.getNumericCellValue());
-                        case 1 -> focos.setData(cell.getLocalDateTimeCellValue());
+                        //case 1 -> focos.setData(cell.getLocalDateTimeCellValue());
                         case 2 -> focos.setSatelite(cell.getStringCellValue());
-                        case 3 -> focos.setPais(cell.getStringCellValue());
+                        //case 3 -> focos.setPais(cell.getStringCellValue());
                         case 4 -> focos.setEstado(cell.getStringCellValue());
                         case 5 -> focos.setMunicipio(cell.getStringCellValue());
                         case 6 -> focos.setBioma(cell.getStringCellValue());
-                        case 7 -> focos.setLat(cell.getNumericCellValue());
-                        case 8 -> focos.setLon(cell.getNumericCellValue());
-                        case 9 -> focos.setRegiao(cell.getStringCellValue());
+                        //case 7 -> focos.setLat(cell.getNumericCellValue());
+                        //case 8 -> focos.setLon(cell.getNumericCellValue());
+                        //case 9 -> focos.setRegiao(cell.getStringCellValue());
                         case 10 -> focos.setDiasSemChuva((int) cell.getNumericCellValue());
                     }
                 }
@@ -66,17 +65,17 @@ public class OpenExcel {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             System.out.println("Arquivo Excel não encontrado!");
+            return false;
         }
 
         if (listaNumbers.size() == 0) {
             System.out.println("Nenhum dado encontrado!");
+            return false;
         } else {
             System.out.println("FROM EXCEL");
-          /* for (Focos focos : listaNumbers) {
-                System.out.println("Data: " + focos.getData().toString() + " Cidade: "
-                        + focos.getMunicipio() + " Indice Linha: " + focos.getIndex());
-            }*/
             System.out.println("Número total de ocorrências: " + listaNumbers.size());
+            return true;
+
         }
 
     }

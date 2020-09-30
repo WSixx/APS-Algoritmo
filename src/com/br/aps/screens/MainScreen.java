@@ -5,18 +5,19 @@ import com.br.aps.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainScreen extends JFrame{
-    private JButton btnStart;
+    private JButton btnOpenFile;
     private JPanel panel1;
-    private JList listData;
     private JButton btnList;
     private JScrollPane scrollPane;
     private JButton btnPesquisar;
@@ -24,15 +25,12 @@ public class MainScreen extends JFrame{
     private JButton btnSelectionSort;
     private JLabel lblResultado;
     private JTable jTable;
-    private JButton bnt;
-    //JFrame
-    public static final JFrame frame = new JFrame();
+    private JButton btnInsertion;
+    private JButton btnBubble;
     static OpenExcel openExcel = new OpenExcel();
     public static List<Integer> listFromSelect = new ArrayList<>();
-    public static List<Integer> fromWhere = new ArrayList<>();
     BancoDAO bancoDAO;
     GetTempo getTempo = new GetTempo();
-
 
     {
         try {
@@ -64,26 +62,31 @@ public class MainScreen extends JFrame{
         this.setLocationRelativeTo(null);
 
 
-        btnStart.addActionListener(new ActionListener() {
+        btnOpenFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                System.out.println("Clicou");
-
                 JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-
                 int returnValue = jfc.showOpenDialog(null);
-                // int returnValue = jfc.showSaveDialog(null);
 
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     File selectedFile = jfc.getSelectedFile();
                     System.out.println(selectedFile.getAbsolutePath());
                     try {
-                        openExcel.OpenExcel(selectedFile.getAbsolutePath());
+                        if(openExcel.OpenExcel(selectedFile.getAbsolutePath()))
+                        {
+                            JOptionPane.showMessageDialog(null,
+                                    "Arquivo Carregado.",
+                                    "Arquivo Carregado",
+                                    JOptionPane.OK_OPTION);
+                        }else {
+                            System.out.println("Arquivo return False");
+                        }
+
                     } catch (Exception ioException) {
                         ioException.printStackTrace();
                     }
                 }
+
             }
         });
         btnList.addActionListener(new ActionListener() {
@@ -101,29 +104,33 @@ public class MainScreen extends JFrame{
         btnSelectionSort.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Algoritmos algoritmos = new Algoritmos();
-
-                long startTime = System.nanoTime();
-                Focos focos;
-                DefaultTableModel model = new DefaultTableModel(new String[]{"id", "Satelite", "" +
-                        "Cidade", "Estado", "Dias sem chuva", "Bioma"}, 0);
-                for(int p : algoritmos.selectionSort(listFromSelect, getTempo) ){
-                    try {
-                        focos = bancoDAO.selectWhere2(p);
-                        model.addRow(new Object[]{p, focos.getSatelite(), focos.getMunicipio(), focos.getEstado(), focos.getDiasSemChuva(), focos.getBioma()});
-                    } catch (SQLException throwables) {
-                        throwables.printStackTrace();
-                    }
-                }
+                TableModel model = buildJTable();
                 jTable.setModel(model);
                 scrollPane.getViewport().setView(jTable);
-                long endTimer = System.nanoTime();
-                //System.out.println("Tempo total: " + (endTimer - startTime) / 1000000);
                 System.out.println("Main tempo: " + getTempo.getTempoTotal());
-                long tempototal = TimeUnit.SECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
-                lblResultado.setText("Tempo: " + tempototal + " segundos");
+                long tempototal = TimeUnit.MILLISECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
+                lblResultado.setText("Tempo: " + tempototal + " Milisegundos");
+                Timestamp dataNow = new Timestamp(System.currentTimeMillis());
+                bancoDAO.salvaTempoBd("SelectionSort", tempototal, dataNow);
             }
         });
+
+        btnBubble.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                TableModel model = buildJTable();
+                jTable.setModel(model);
+                scrollPane.getViewport().setView(jTable);
+                System.out.println("Main tempo: " + getTempo.getTempoTotal());
+                long tempototal = TimeUnit.MILLISECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
+                lblResultado.setText("Tempo: " + tempototal + " Milisegundos");
+                Timestamp dataNow = new Timestamp(System.currentTimeMillis());
+
+                bancoDAO.salvaTempoBd("BubbleSort", tempototal, dataNow);
+
+            }
+        });
+
         btnPesquisar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -139,26 +146,62 @@ public class MainScreen extends JFrame{
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
-                /*listData.setModel(dlm);
-                listData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                //listData.setSelectedIndex(0);
-                listData.setVisibleRowCount(-1);
-                scrollPane.getViewport().setView(listData);*/
+            }
+        });
+
+
+
+        btnInsertion.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!listFromSelect.isEmpty()){
+                    passarToLista();
+                }
+
+                TableModel model = buildJTable();
+                jTable.setModel(model);
+                scrollPane.getViewport().setView(jTable);
+                System.out.println("Main tempo: " + getTempo.getTempoTotal());
+                long tempototal = TimeUnit.MILLISECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
+                lblResultado.setText("Tempo: " + tempototal + " Milisegundos");
+                Timestamp dataNow = new Timestamp(System.currentTimeMillis());
+                bancoDAO.salvaTempoBd("InsertionSort", tempototal, dataNow);
+
             }
         });
 
     }
 
-    static BancoDAO teste(){
-        try {
-            BancoDAO bancoDAO = new BancoDAO();
-            return bancoDAO;
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            System.out.println("Seguno");
-            return null;
+    private TableModel buildJTable(){
+        Algoritmos algoritmos = new Algoritmos();
 
+        Focos focos;
+        DefaultTableModel model = new DefaultTableModel(new String[]{"id", "Satelite", "" +
+                "Cidade", "Estado", "Dias sem chuva", "Bioma"}, 0);
+        for(int p : algoritmos.insertionSort(listFromSelect, getTempo) ){
+            try {
+                focos = bancoDAO.selectWhere2(p);
+                model.addRow(new Object[]{p, focos.getSatelite(), focos.getMunicipio(), focos.getEstado(), focos.getDiasSemChuva(), focos.getBioma()});
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
         }
+        return model;
+    }
+
+    void passarToLista(){
+        BancoDAO bancoDAO = null;
+        try {
+            bancoDAO = new BancoDAO();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            listFromSelect = bancoDAO.select();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
     }
 
     public void refreshlist(boolean isRandom) throws Exception {
@@ -172,12 +215,7 @@ public class MainScreen extends JFrame{
             String textFieldValue = indiceTextField.getText();
             bancoDAO.selectWhere(jTable, Integer.parseInt(textFieldValue));
             scrollPane.getViewport().setView(jTable);
-          /*  BancoDAO bancoDAO = new BancoDAO();
-            String textFieldValue = indiceTextField.getText();
-            Focos focos = bancoDAO.selectWhere(Integer.parseInt(textFieldValue));
-            dlm.addElement(focos.getMunicipio());*/
         }
-
     }
 
     public static void main(String[] args) throws Exception {
@@ -185,6 +223,5 @@ public class MainScreen extends JFrame{
        MainScreen mainScreen = new  MainScreen();
        mainScreen.setVisible(true);
        listFromSelect = bancoDAO.select();
-       teste();
     }
 }

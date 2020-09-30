@@ -16,17 +16,14 @@ public class BancoDAO {
     }
 
     public void salvaBd(Focos focos) {
-        String sql = "INSERT INTO focos(satelite,cidade,estado,diassemchuva,bioma) VALUES(?,?,?,?,?)";
-        //String sql = "INSERT INTO focos(bioma,cidade) VALUES(?,?,?)";
+        String sql = "INSERT INTO focos(satelite,cidade,estado,diasSemChuva,bioma) VALUES(?,?,?,?,?)";
             try {
                 PreparedStatement prepState = conector.prepareStatement(sql);
-
-                //prepState.setString(1, String.valueOf(focos.getIndex()));
                 prepState.setString(1, focos.getSatelite());
                 prepState.setString(2, focos.getMunicipio());
                 prepState.setString(3, focos.getEstado());
                 prepState.setInt(4, focos.getDiasSemChuva());
-                prepState.setString(5, focos.getMunicipio());
+                prepState.setString(5, focos.getBioma());
 
                 prepState.execute();
                 prepState.close();
@@ -34,31 +31,26 @@ public class BancoDAO {
             } catch (SQLException u) {
                 throw new RuntimeException(u);
             }
-
     }
-    /*public DefaultTableModel selectTable() throws SQLException {
-        DefaultTableModel model = null;
-        String select = "select * from focos";
-        String n = "",e = "";
-        PreparedStatement prepState = conector.prepareStatement(select);
-        ResultSet rs = prepState.executeQuery(select);
-        while(rs.next())
-        {
-            n = rs.getString("bioma");
-            //e= rs.getString("bioma");
-            if(n == null){
-                System.out.println("entrou no null");
-            }
-            model.addRow(new Object[]{n});
+
+    public void salvaTempoBd(String algoritmo, double tempo, Timestamp data) {
+        String sql = "INSERT INTO tempos(algoritmo,tempo,dataNow) VALUES(?,?, ?)";
+        try {
+            PreparedStatement prepState = conector.prepareStatement(sql);
+            prepState.setString(1, algoritmo);
+            prepState.setDouble(2, tempo);
+            prepState.setTimestamp(3, data);
+
+            prepState.execute();
+            prepState.close();
+
+        } catch (SQLException u) {
+            throw new RuntimeException(u);
         }
-        rs.close();
-        return model;
-    }*/
+    }
 
     public void FillTable(JTable table) throws SQLException {
-        DefaultTableModel model = null;
         String select = "select * from focos ORDER BY RAND()";
-        String n = "",e = "";
         PreparedStatement prepState = conector.prepareStatement(select);
         ResultSet rs = prepState.executeQuery(select);
         DefaultTableModel tableModel = new DefaultTableModel();
@@ -93,8 +85,6 @@ public class BancoDAO {
 
     public List<Integer> select() throws SQLException {
         String select = "select id, bioma from focos ORDER BY rand()";
-        String n = "",e = "";
-        DefaultTableModel model = null;
         PreparedStatement prepState = conector.prepareStatement(select);
         ResultSet rs = prepState.executeQuery();
 
@@ -125,20 +115,7 @@ public class BancoDAO {
         return focos;
     }
     public void selectWhere(JTable table, int id) throws SQLException {
-       /* String select = "select id, bioma, cidade from focos where id=" + id;
-        PreparedStatement stmt = conector.prepareStatement(select);
-        ResultSet rs = stmt.executeQuery();
-        Focos focos = new Focos();
-        while (rs.next()) {
-            focos.setIndex(rs.getInt("id"));
-            focos.setBioma(rs.getString("bioma"));
-            focos.setMunicipio(rs.getString("cidade"));
-        }
-        rs.close();
-        return focos;*/
-        DefaultTableModel model = null;
         String select = "select * from focos where id=" + id;
-        String n = "",e = "";
         PreparedStatement prepState = conector.prepareStatement(select);
         ResultSet rs = prepState.executeQuery(select);
         DefaultTableModel tableModel = new DefaultTableModel();
