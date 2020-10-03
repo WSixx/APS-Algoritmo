@@ -1,13 +1,20 @@
 package com.br.aps.screens;
 
-import com.br.aps.*;
+import com.br.aps.classes.Algoritmos;
+import com.br.aps.classes.Focos;
+import com.br.aps.classes.GetTempo;
+import com.br.aps.classes.OpenExcel;
+import com.br.aps.dbHelper.BancoDAO;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -27,6 +34,7 @@ public class MainScreen extends JFrame{
     private JTable jTable;
     private JButton btnInsertion;
     private JButton btnBubble;
+    private JButton btnTempos;
     static OpenExcel openExcel = new OpenExcel();
     public static List<Integer> listFromSelect = new ArrayList<>();
     BancoDAO bancoDAO;
@@ -53,14 +61,15 @@ public class MainScreen extends JFrame{
         //Redimensionamento = false
         this.setResizable(false);
 
+
+
         //Cria uma nova imagem a partir do caminho
-        //ImageIcon img = new ImageIcon("src/icon/line-stats.png");
+        ImageIcon img = new ImageIcon("src/icon/br.png");
         //Set o icone como img
-        //this.setIconImage(img.getImage());
+        this.setIconImage(img.getImage());
 
         //Abrir a janela no centro da Tela
         this.setLocationRelativeTo(null);
-
 
         btnOpenFile.addActionListener(new ActionListener() {
             @Override
@@ -77,7 +86,7 @@ public class MainScreen extends JFrame{
                             JOptionPane.showMessageDialog(null,
                                     "Arquivo Carregado.",
                                     "Arquivo Carregado",
-                                    JOptionPane.OK_OPTION);
+                                    JOptionPane.ERROR_MESSAGE);
                         }else {
                             System.out.println("Arquivo return False");
                         }
@@ -104,12 +113,15 @@ public class MainScreen extends JFrame{
         btnSelectionSort.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TableModel model = buildJTable();
+                Algoritmos algoritmos = new Algoritmos();
+
+                TableModel model = buildJTable(algoritmos, algoritmos.selectionSort(listFromSelect, getTempo));
                 jTable.setModel(model);
                 scrollPane.getViewport().setView(jTable);
-                System.out.println("Main tempo: " + getTempo.getTempoTotal());
+
                 long tempototal = TimeUnit.MILLISECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
                 lblResultado.setText("Tempo: " + tempototal + " Milisegundos");
+
                 Timestamp dataNow = new Timestamp(System.currentTimeMillis());
                 bancoDAO.salvaTempoBd("SelectionSort", tempototal, dataNow);
             }
@@ -118,7 +130,9 @@ public class MainScreen extends JFrame{
         btnBubble.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TableModel model = buildJTable();
+                Algoritmos algoritmos = new Algoritmos();
+
+                TableModel model = buildJTable(algoritmos, algoritmos.bubbleSort(listFromSelect, getTempo));
                 jTable.setModel(model);
                 scrollPane.getViewport().setView(jTable);
                 System.out.println("Main tempo: " + getTempo.getTempoTotal());
@@ -127,6 +141,26 @@ public class MainScreen extends JFrame{
                 Timestamp dataNow = new Timestamp(System.currentTimeMillis());
 
                 bancoDAO.salvaTempoBd("BubbleSort", tempototal, dataNow);
+
+            }
+        });
+
+        btnInsertion.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!listFromSelect.isEmpty()){
+                    passarToLista();
+                }
+                Algoritmos algoritmos = new Algoritmos();
+
+                TableModel model = buildJTable(algoritmos, algoritmos.insertionSort(listFromSelect, getTempo));
+                jTable.setModel(model);
+                scrollPane.getViewport().setView(jTable);
+                System.out.println("Main tempo: " + getTempo.getTempoTotal());
+                long tempototal = TimeUnit.MILLISECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
+                lblResultado.setText("Tempo: " + tempototal + " Milisegundos");
+                Timestamp dataNow = new Timestamp(System.currentTimeMillis());
+                bancoDAO.salvaTempoBd("InsertionSort", tempototal, dataNow);
 
             }
         });
@@ -151,34 +185,19 @@ public class MainScreen extends JFrame{
 
 
 
-        btnInsertion.addActionListener(new ActionListener() {
+        btnTempos.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!listFromSelect.isEmpty()){
-                    passarToLista();
-                }
-
-                TableModel model = buildJTable();
-                jTable.setModel(model);
-                scrollPane.getViewport().setView(jTable);
-                System.out.println("Main tempo: " + getTempo.getTempoTotal());
-                long tempototal = TimeUnit.MILLISECONDS.convert((getTempo.getTempoTotal()), TimeUnit.NANOSECONDS) ;
-                lblResultado.setText("Tempo: " + tempototal + " Milisegundos");
-                Timestamp dataNow = new Timestamp(System.currentTimeMillis());
-                bancoDAO.salvaTempoBd("InsertionSort", tempototal, dataNow);
-
+                Tabela tabela = new Tabela();
             }
         });
-
     }
 
-    private TableModel buildJTable(){
-        Algoritmos algoritmos = new Algoritmos();
-
+    private TableModel buildJTable(Algoritmos algoritmos,  List<Integer> algo){
         Focos focos;
         DefaultTableModel model = new DefaultTableModel(new String[]{"id", "Satelite", "" +
                 "Cidade", "Estado", "Dias sem chuva", "Bioma"}, 0);
-        for(int p : algoritmos.insertionSort(listFromSelect, getTempo) ){
+        for(int p : algo ){
             try {
                 focos = bancoDAO.selectWhere2(p);
                 model.addRow(new Object[]{p, focos.getSatelite(), focos.getMunicipio(), focos.getEstado(), focos.getDiasSemChuva(), focos.getBioma()});
@@ -222,6 +241,11 @@ public class MainScreen extends JFrame{
        BancoDAO bancoDAO = new BancoDAO();
        MainScreen mainScreen = new  MainScreen();
        mainScreen.setVisible(true);
+       mainScreen.setTitle("Algoritmo de Ordenação");
        listFromSelect = bancoDAO.select();
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
     }
 }

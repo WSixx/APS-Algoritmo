@@ -1,4 +1,4 @@
-package com.br.aps;
+package com.br.aps.classes;
 
 public class GetTempo {
     private long tempoTotal;

@@ -1,10 +1,15 @@
-package com.br.aps;
+package com.br.aps.dbHelper;
+
+import com.br.aps.classes.Focos;
+import com.br.aps.classes.Tempos;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static javax.swing.UIManager.getInt;
 
 
 public class BancoDAO {
@@ -146,5 +151,33 @@ public class BancoDAO {
 
         //Now add that table model to your table and you are done :D
         table.setModel(tableModel);
+    }
+
+    public Tempos selecTempos(int id) throws SQLException {
+        String select = "select id, algoritmo, tempo, dataNow from tempos where id=" + id;
+        PreparedStatement stmt = conector.prepareStatement(select);
+        ResultSet rs = stmt.executeQuery();
+        Tempos tempos = new Tempos();
+            while (rs.next()) {
+                tempos.setId(rs.getInt("id"));
+                tempos.setAlgoritmo(rs.getString("algoritmo"));
+                tempos.setTempo(rs.getDouble("tempo"));
+                tempos.setDataNow(rs.getDate("dataNow"));
+
+            }
+            rs.close();
+            return tempos;
+        }
+    public int getCount() throws SQLException {
+        String select = "SELECT COUNT(*) FROM tempos";
+        PreparedStatement stmt = conector.prepareStatement(select);
+        ResultSet rs = stmt.executeQuery();
+        int total = 0;
+        while (rs.next()) {
+            total = rs.getInt(1);;
+        }
+        rs.close();
+        System.out.println("Total: " + total);
+        return total;
     }
 }
